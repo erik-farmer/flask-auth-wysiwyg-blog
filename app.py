@@ -1,12 +1,13 @@
-import os
-from flask import Flask, url_for, redirect, render_template, request
+from flask import Flask, url_for, redirect, request
+from flask.ext.admin.contrib.sqla import ModelView
+from flask_admin import helpers, expose
+from flask_admin.contrib import sqla
 from flask_sqlalchemy import SQLAlchemy
-from wtforms import form, fields, validators
+from werkzeug.security import check_password_hash
+from wtforms import form, fields, validators, TextAreaField
+from wtforms.widgets import TextArea
 import flask_admin as admin
 import flask_login as login
-from flask_admin.contrib import sqla
-from flask_admin import helpers, expose
-from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # Create Flask application
@@ -47,6 +48,12 @@ class User(db.Model):
     # Required for administrative interface
     def __unicode__(self):
         return self.username
+
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(80), unique=True)
+    text = db.Column(db.UnicodeText)
 
 
 # Define login and registration forms (for flask-login)
@@ -112,6 +119,24 @@ class MyAdminIndexView(admin.AdminIndexView):
         login.logout_user()
         return redirect(url_for('.index'))
 
+
+class CKTextAreaWidget(TextArea):
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('class_', 'ckeditor')
+        return super(CKTextAreaWidget, self).__call__(field, **kwargs)
+
+
+class CKTextAreaField(TextAreaField):
+    widget = CKTextAreaWidget()
+
+
+class TestAdmin(ModelView):
+    form_overrides = dict(text=CKTextAreaField)
+
+    create_template = 'admin/new.html'
+    edit_template = 'admin/edit.html'
+
+
 # Initialize flask-login
 init_login()
 
@@ -119,7 +144,7 @@ init_login()
 admin = admin.Admin(app, 'Blog', index_view=MyAdminIndexView(), base_template='my_master.html')
 
 # Add view
-admin.add_view(MyModelView(User, db.session))
+admin.add_view(TestAdmin(Post, db.session))
 
 if __name__ == '__main__':
     db.create_all()
