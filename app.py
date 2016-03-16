@@ -3,7 +3,8 @@ from flask.ext.admin.contrib.sqla import ModelView
 from flask_admin import helpers, expose
 from flask_admin.contrib import sqla
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import check_password_hash
+# from werkzeug.security import check_password_hash
+from flask.ext.bcrypt import Bcrypt
 from wtforms import form, fields, validators, TextAreaField
 from wtforms.widgets import TextArea
 import flask_admin as admin
@@ -21,6 +22,7 @@ app.config['DATABASE_FILE'] = 'sample_db.sqlite'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.config['DATABASE_FILE']
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 
 
 # Create user model.
@@ -67,7 +69,7 @@ class LoginForm(form.Form):
         if user is None:
             raise validators.ValidationError('Invalid user')
 
-        if not check_password_hash(user.password, self.password.data):
+        if not bcrypt.check_password_hash(user.password, self.password.data):
             raise validators.ValidationError('Invalid password')
 
     def get_user(self):
