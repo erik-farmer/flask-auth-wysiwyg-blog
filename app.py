@@ -3,7 +3,6 @@ from flask.ext.admin.contrib.sqla import ModelView
 from flask_admin import helpers, expose
 from flask_admin.contrib import sqla
 from flask_sqlalchemy import SQLAlchemy
-# from werkzeug.security import check_password_hash
 from flask.ext.bcrypt import Bcrypt
 from wtforms import form, fields, validators, TextAreaField
 from wtforms.widgets import TextArea
@@ -146,7 +145,7 @@ init_login()
 admin = admin.Admin(app, 'Blog', index_view=MyAdminIndexView(), base_template='my_master.html')
 
 # Add view
-admin.add_view(TestAdmin(Post, db.session))
+admin.add_view(MyModelView(Post, db.session))
 
 if __name__ == '__main__':
     db.create_all()
