@@ -1,5 +1,4 @@
 from flask import Flask, url_for, redirect, request
-from flask.ext.admin.contrib.sqla import ModelView
 from flask_admin import helpers, expose
 from flask_admin.contrib import sqla
 from flask_sqlalchemy import SQLAlchemy
@@ -86,8 +85,23 @@ def init_login():
         return db.session.query(User).get(user_id)
 
 
+class CKTextAreaWidget(TextArea):
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('class_', 'ckeditor')
+        return super(CKTextAreaWidget, self).__call__(field, **kwargs)
+
+
+class CKTextAreaField(TextAreaField):
+    widget = CKTextAreaWidget()
+
+
 # Create customized model view class
 class MyModelView(sqla.ModelView):
+
+    form_overrides = dict(text=CKTextAreaField)
+
+    create_template = 'admin/new.html'
+    edit_template = 'admin/edit.html'
 
     def is_accessible(self):
         return login.current_user.is_authenticated
@@ -119,23 +133,6 @@ class MyAdminIndexView(admin.AdminIndexView):
     def logout_view(self):
         login.logout_user()
         return redirect(url_for('.index'))
-
-
-class CKTextAreaWidget(TextArea):
-    def __call__(self, field, **kwargs):
-        kwargs.setdefault('class_', 'ckeditor')
-        return super(CKTextAreaWidget, self).__call__(field, **kwargs)
-
-
-class CKTextAreaField(TextAreaField):
-    widget = CKTextAreaWidget()
-
-
-class TestAdmin(ModelView):
-    form_overrides = dict(text=CKTextAreaField)
-
-    create_template = 'admin/new.html'
-    edit_template = 'admin/edit.html'
 
 
 # Initialize flask-login
