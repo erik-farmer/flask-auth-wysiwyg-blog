@@ -96,7 +96,7 @@ class CKTextAreaField(TextAreaField):
 
 
 # Create customized model view class
-class MyModelView(sqla.ModelView):
+class AuthModelView(sqla.ModelView):
 
     form_overrides = dict(text=CKTextAreaField)
 
@@ -108,13 +108,13 @@ class MyModelView(sqla.ModelView):
 
 
 # Create customized index view class that handles login & registration
-class MyAdminIndexView(admin.AdminIndexView):
+class AuthAdminIndexView(admin.AdminIndexView):
 
     @expose('/')
     def index(self):
         if not login.current_user.is_authenticated:
             return redirect(url_for('.login_view'))
-        return super(MyAdminIndexView, self).index()
+        return super(AuthAdminIndexView, self).index()
 
     @expose('/login/', methods=('GET', 'POST'))
     def login_view(self):
@@ -127,7 +127,7 @@ class MyAdminIndexView(admin.AdminIndexView):
         if login.current_user.is_authenticated:
             return redirect(url_for('.index'))
         self._template_args['form'] = form
-        return super(MyAdminIndexView, self).index()
+        return super(AuthAdminIndexView, self).index()
 
     @expose('/logout/')
     def logout_view(self):
@@ -139,10 +139,10 @@ class MyAdminIndexView(admin.AdminIndexView):
 init_login()
 
 # Create admin
-admin = admin.Admin(app, 'Blog', index_view=MyAdminIndexView(), base_template='my_master.html')
+admin = admin.Admin(app, 'Blog', index_view=AuthAdminIndexView(), base_template='my_master.html')
 
 # Add view
-admin.add_view(MyModelView(Post, db.session))
+admin.add_view(AuthModelView(Post, db.session))
 
 if __name__ == '__main__':
     db.create_all()
